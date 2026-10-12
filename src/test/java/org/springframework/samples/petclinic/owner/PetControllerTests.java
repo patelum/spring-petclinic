@@ -17,6 +17,7 @@
 package org.springframework.samples.petclinic.owner;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.mockito.ArgumentCaptor;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledInNativeImage;
@@ -34,7 +35,9 @@ import java.util.Optional;
 
 import org.springframework.dao.DataIntegrityViolationException;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -266,6 +269,82 @@ class PetControllerTests {
 				.andExpect(model().attributeHasFieldErrors("pet", "name"))
 				.andExpect(model().attributeHasFieldErrorCode("pet", "name", "duplicate"))
 				.andExpect(status().isOk())
+				.andExpect(view().name("pets/createOrUpdatePetForm"));
+		}
+
+	}
+
+	@Nested
+	class WhitespaceInPetNames {
+
+		@Test
+		void savesCreationWithPaddedNonDuplicateNameTrimmed() throws Exception {
+			mockMvc
+				.perform(post("/owners/{ownerId}/pets/new", TEST_OWNER_ID).param("name", " Rex ")
+					.param("type", "hamster")
+					.param("birthDate", "2015-02-12"))
+				.andExpect(status().is3xxRedirection())
+				.andExpect(view().name("redirect:/owners/{ownerId}"));
+
+			ArgumentCaptor<Owner> saved = ArgumentCaptor.forClass(Owner.class);
+			verify(owners).saveAndFlush(saved.capture());
+			assertThat(saved.getValue().getPets()).extracting(Pet::getName).contains("Rex").doesNotContain(" Rex ");
+		}
+
+		@Test
+		void stillRequiresNameWhenCreationNameIsOnlyWhitespace() throws Exception {
+			mockMvc
+				.perform(post("/owners/{ownerId}/pets/new", TEST_OWNER_ID).param("name", "   ")
+					.param("type", "hamster")
+					.param("birthDate", "2015-02-12"))
+				.andExpect(status().isOk())
+				.andExpect(model().attributeHasFieldErrorCode("pet", "name", "required"))
+				.andExpect(view().name("pets/createOrUpdatePetForm"));
+		}
+
+		@Test
+		void rejectsCreationWithTrailingSpaceDuplicateName() throws Exception {
+			mockMvc
+				.perform(post("/owners/{ownerId}/pets/new", TEST_OWNER_ID).param("name", "petty ")
+					.param("type", "hamster")
+					.param("birthDate", "2015-02-12"))
+				.andExpect(status().isOk())
+				.andExpect(model().attributeHasFieldErrorCode("pet", "name", "duplicate"))
+				.andExpect(view().name("pets/createOrUpdatePetForm"));
+		}
+
+		@Test
+		void rejectsCreationWithLeadingSpaceDuplicateName() throws Exception {
+			mockMvc
+				.perform(post("/owners/{ownerId}/pets/new", TEST_OWNER_ID).param("name", " petty")
+					.param("type", "hamster")
+					.param("birthDate", "2015-02-12"))
+				.andExpect(status().isOk())
+				.andExpect(model().attributeHasFieldErrorCode("pet", "name", "duplicate"))
+				.andExpect(view().name("pets/createOrUpdatePetForm"));
+		}
+
+		@Test
+		void rejectsUpdateWithTrailingSpaceDuplicateName() throws Exception {
+			mockMvc
+				.perform(post("/owners/{ownerId}/pets/{petId}/edit", TEST_OWNER_ID, TEST_PET_ID + 1)
+					.param("name", "petty ")
+					.param("type", "hamster")
+					.param("birthDate", "2015-02-12"))
+				.andExpect(status().isOk())
+				.andExpect(model().attributeHasFieldErrorCode("pet", "name", "duplicate"))
+				.andExpect(view().name("pets/createOrUpdatePetForm"));
+		}
+
+		@Test
+		void rejectsUpdateWithLeadingSpaceDuplicateName() throws Exception {
+			mockMvc
+				.perform(post("/owners/{ownerId}/pets/{petId}/edit", TEST_OWNER_ID, TEST_PET_ID + 1)
+					.param("name", " petty")
+					.param("type", "hamster")
+					.param("birthDate", "2015-02-12"))
+				.andExpect(status().isOk())
+				.andExpect(model().attributeHasFieldErrorCode("pet", "name", "duplicate"))
 				.andExpect(view().name("pets/createOrUpdatePetForm"));
 		}
 
