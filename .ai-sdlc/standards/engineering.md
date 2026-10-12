@@ -23,3 +23,5 @@ Agents apply these when designing, implementing and reviewing. A rule here overr
 ## Team additions
 
 <!-- Add rules specific to this codebase below. Approved improvement proposals are appended here with their source. -->
+
+- In a plan, find the callers of any changed method with grep and list them. Do not leave them as an [assumption]. After a step's verify is green, tick it in plan.md before starting the next step. (source: PET-7)

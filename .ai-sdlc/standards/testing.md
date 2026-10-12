@@ -24,3 +24,5 @@
 ## Team additions
 
 <!-- Add rules specific to this codebase below. -->
+
+- When a change normalises, binds or validates input, add tests for the valid-but-unusual input (for example padded or odd-case values), the empty input, and each rejected input. For rejected input, assert the user-visible message. Raw framework or exception text shown to a user (for example a type-conversion message) is a must-fix in review. (source: PET-7, PET-12)

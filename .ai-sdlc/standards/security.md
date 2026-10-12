@@ -19,3 +19,5 @@
 ## Team additions
 
 <!-- Add rules specific to this codebase below. -->
+
+- When a form field binds an entity from a shared or cached source (for example a formatter-resolved Vet), the controller's @InitBinder must disallow nested properties of that field (for example setDisallowedFields("vet.*")), with a test that posting them leaves the entity unchanged. (source: PET-12)
