@@ -10,11 +10,12 @@ build:
   # Full build: unit tests, integration tests, static checks. Run once at the end.
   verify: ./mvnw -q verify
   # Fast, scoped build for one module and what it depends on. {module} = Maven artifactId / Gradle path.
-  verify_module: ./mvnw -q -pl {module} -am verify
+  # Single-module build: scope by package. {module} = logical module from modules: below.
+  verify_module: ./mvnw -q -B spring-javaformat:validate test -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dtest='org.springframework.samples.petclinic.{module}.**'
   # Single test class, for tight loops. {module} and {test} = fully qualified class name.
-  test_one: ./mvnw -q -pl {module} -am -Dtest={test} -Dsurefire.failIfNoSpecifiedTests=false test
+  test_one: ./mvnw -q -B test -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dtest={test}
   # Formatter. Leave empty if the project has none.
-  format: ""                   # e.g. ./mvnw -q spotless:apply
+  format: ./mvnw -q -B spring-javaformat:apply
   # Gradle equivalents:
   #   verify: ./gradlew check
   #   verify_module: ./gradlew :{module}:check
@@ -44,11 +45,17 @@ protect:
   - "**/src/main/resources/db/migration/**"   # applied migrations are immutable; add new ones instead
   - "**/src/main/resources/db/changelog/**"
   - ".github/workflows/**"
+  - "src/main/resources/db/*/schema.sql"     # hand-written schema, three copies; changes need approval
 
 # Optional: map logical modules to source roots for single-module builds.
 # Filled in by the context setup step. Maven multi-module builds usually need nothing here.
-modules: {}
-#  billing:
-#    paths: [src/main/java/com/acme/billing]
-#  orders:
-#    paths: [src/main/java/com/acme/orders]
+# Single Maven module (artifactId spring-petclinic); these are inferred logical modules (packages).
+modules:
+  model:
+    paths: [src/main/java/org/springframework/samples/petclinic/model]
+  owner:
+    paths: [src/main/java/org/springframework/samples/petclinic/owner]
+  vet:
+    paths: [src/main/java/org/springframework/samples/petclinic/vet]
+  system:
+    paths: [src/main/java/org/springframework/samples/petclinic/system]
