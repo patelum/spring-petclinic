@@ -14,7 +14,7 @@ description: Implements one step of an approved specs/<id>/plan.md in this Java 
 2. Make the change. Follow the patterns, naming, logging and error handling of the surrounding code.
 3. Add or update tests the step calls for. Keep production and test changes in the same step. When a new test is meant to prove the change, write and run it **before** the production change so it is seen failing; name tests after behaviour, never after the ticket id.
 4. Run `build.format` if configured.
-5. Run `build.verify_module` with the step's module (or `build.test_one` for a quick check first, then the module build).
+5. Run `build.verify_module` with the step's module (or `build.test_one` for a quick check first, then the module build). Do not pipe build commands through `tail`/`head`: the exit code is lost, and a build whose exit code you did not see does not count as green.
 6. If green: tick the step in `plan.md` (`- [x]`), and report.
 7. If red: read the error, fix, and re-run. Report each attempt to the orchestrator; it tracks the retry budget.
 

@@ -16,6 +16,9 @@ blocked_reason: ""              # set only while blocked
 retries:                        # automatic fix attempts, keyed by step
   implement-3: 2
   verify-full: 0
+approvals:                      # exceptions a human approved for this ticket only
+  - new_cross_module_dependency: owner -> vet      # G2
+  - protected_path: src/main/resources/db/*/schema.sql   # G2
 created: 2026-10-12T14:02
 updated: 2026-10-12T15:40
 ---
@@ -47,6 +50,6 @@ updated: 2026-10-12T15:40
 - Stage markers: `[ ]` not started, `[~]` in progress or awaiting, `[x]` complete, `[-]` skipped (with reason).
 - Gates are numbered in the order they occur in the track, starting at G1. The final gate is always the last.
 - `state: blocked` is for escalations waiting on the human. Record what is needed in `blocked_reason`.
-- Times are local, `YYYY-MM-DD HH:MM`.
+- Times are local, `YYYY-MM-DD HH:MM`, and **must come from the clock**: run `date '+%Y-%m-%d %H:%M'` before writing a log line or `updated`. Never estimate or increment times yourself.
 - Rejection log lines include the reason number and any text the human typed, in quotes.
 - Never delete log lines. Correct mistakes with a new line.

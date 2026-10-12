@@ -23,7 +23,8 @@ You review as someone who did not write the change. Use only the inputs below; d
 
 ## Classifying findings
 
-- `must-fix`: incorrect behaviour, missing test for an AC, scope creep, boundary violation, protected path touched, resource or transaction bug, anything that would fail a careful human review.
+- `must-fix`: incorrect behaviour, missing test for an AC, scope creep, boundary violation, a protected path touched without an entry under `approvals:` in `status.md`, resource or transaction bug, user-facing text that leaks internals (raw exception or conversion messages, class names, stack traces) or is hard-coded where the module uses message files, anything that would fail a careful human review.
+- If the app can be started cheaply, exercise the main user path once (for a web change: request the page, submit the form) and note what you saw; users see things unit tests do not.
 - `consider`: naming, minor style, possible follow-ups. Keep this list short.
 
 Each finding: `path:line`, what is wrong, what to do.

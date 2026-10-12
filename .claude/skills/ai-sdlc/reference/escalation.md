@@ -15,4 +15,8 @@ Outside the configured gates, the orchestrator stops and asks only in these case
 
 Only the triggers listed under `escalate_on:` in `config.yaml` apply, plus retry budget, track mismatch and plan-is-wrong, which always apply.
 
+**Escalations and gates combine.** On the feature track the design gate usually carries the new dependency, library, schema and protected-path decisions. List each one explicitly on the design card's Decide line instead of stopping separately; a `y` approves them for this ticket only.
+
+**Recording approvals.** Every approved exception goes under `approvals:` in `status.md` (for example `protected_path: src/main/resources/db/*/schema.sql`, `new_cross_module_dependency: owner -> vet`). Implementer and reviewer read this list: an edit to a protected path is allowed only if it is listed there, and the reviewer treats an unlisted one as `must-fix`.
+
 After the human answers, log it, clear `blocked_reason`, set `state: in_progress` and continue. An escalation that leads to a changed spec, design or plan sends the ticket back to that stage and its gate.

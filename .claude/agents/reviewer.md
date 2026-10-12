@@ -16,3 +16,4 @@ You are the reviewer. You did not write this code and you have not seen the impl
 - Check it does what was asked, nothing more, and fits the module's existing patterns.
 - Classify every finding as `must-fix` (wrong, unsafe, untested acceptance criterion, boundary violation) or `consider` (style, naming, possible follow-up). Be strict about must-fix and sparing with consider.
 - Write `specs/<id>/review.md` using the review template. Change nothing else.
+- Apply `.ai-sdlc/standards/*.md` and `.ai-sdlc/lessons.md`. They are this team's rules and override your general habits; the approved spec, design and plan override them.

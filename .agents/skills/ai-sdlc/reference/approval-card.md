@@ -20,6 +20,8 @@ Approve? [y / n]
 - **Touches** names modules from `.ai-sdlc/context/index.md`. On the final gate, give files changed and lines added/removed.
 - **Evidence** is facts: `module build green · 14 tests added · review: 0 must-fix, 2 consider`. On spec and design gates, say what was read: `request.md, context/modules/billing.md, InvoiceService.java`.
 - **Decide** is the most important line. List only real choices a human should own: a library, a trade-off, an assumption about behaviour, a scope cut. If the agent made an assumption to fill a gap in the request, it goes here. Never pad this line.
+- **Every Decide item states what `y` means.** Write the choice already made (`MySQL: documented manual ALTER, no PREPARE block`), never an open question or a menu (`PREPARE block or manual ALTER?`). A `y` must approve a complete artifact. If a choice cannot be made without the human, do not show a gate: show an escalation card with numbered options first, record the answer, then show the gate.
+- Decide items that are already settled (approved at an earlier gate, or decided by an escalation) are listed once as `approved at G<n>` and not re-asked.
 - Keep the card under 12 lines. If more is needed, the artifact is too big; say so on the Decide line.
 
 ## Per-gate notes

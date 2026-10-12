@@ -18,7 +18,13 @@ Goal: give future agents a small, accurate map of this codebase so each task loa
 
 1. **Build facts.** Read the root `pom.xml` / `settings.gradle*` and every module's build file. Record: Java version, framework (Spring Boot version, Jakarta EE, plain), packaging (jar, war), modules, notable dependencies (persistence, messaging, web, testing), formatters and static checks that run in the build.
    **Check the `build:` commands work for this build's shape.** A multi-module build scopes `verify_module` by build module (`-pl {module} -am`); a single-module build cannot, and must scope tests by package folder (`-Dtest='**/{module}/**'`, or `--tests '*.{module}.*'` on Gradle). Fix `config.yaml` if the commands do not match, set `format:` if the build has a formatter, then **run `verify_module` once** for one module and record the result and time in `index.md`.
-2. **Modules.** For a multi-module build, each build module is a module. For a single-module build, propose logical modules from top-level packages under the base package (e.g. `com.acme.billing`, `com.acme.orders`); mark this `[inferred]` and record them under `modules:` in config.
+2. **Modules.** Aim for modules of roughly 20–150 main classes, so a task loads one or two small context files.
+   - Each build module (Maven module, Gradle project) is a module.
+   - **A build module with more than ~150 main classes is split into logical modules by package**, the same way as a single-module build. This is common in monoliths that are "multi-module" in name only (one huge `app` module plus a few small ones). Keep a short overview file for the build module itself.
+   - For a single-module build, propose logical modules from top-level packages under the base package (e.g. `com.acme.billing`, `com.acme.orders`).
+   - Merge tiny packages into a neighbour; name modules after what they do.
+   - Mark logical modules `[inferred]` and record each under `modules:` in config with its `paths` (main and test) and a `tests` pattern for the scoped build (see config.yaml comments).
+   - Map dependencies between logical modules from imports, and record cycles explicitly in `index.md`: the compiler will not stop new cross-package imports inside one build module, so review must.
 3. **Per module, find:**
    - Entry points: classes with `@RestController`, `@Controller`, `@Scheduled`, `@KafkaListener`, `@JmsListener`, `@RabbitListener`, `@EventListener`, servlets/filters, `main` methods, EJBs.
    - Data: `@Entity` classes and their tables; migrations under Flyway (`db/migration`) or Liquibase.

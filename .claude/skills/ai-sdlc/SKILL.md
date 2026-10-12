@@ -20,7 +20,8 @@ Reference files in this skill folder:
 1. Read `.ai-sdlc/config.yaml`. If it is missing, tell the user to run the installer and stop.
 2. Find work in progress: every `specs/*/status.md` whose `state` is not `done` or `abandoned`.
 3. Check whether `.ai-sdlc/context/index.md` exists.
-4. Show the menu, numbered, and wait for a choice:
+4. Count **new retros**: `specs/*/retro.md` with `processed: false`, plus finished tickets (`state: done`) that have no `retro.md`.
+5. Show the menu, numbered, and wait for a choice:
 
 ```text
 ai-sdlc · <project.name> · <n> ticket(s) in progress
@@ -31,6 +32,7 @@ What do you want to do?
   3  Refactor
   4  Resume <id> (<state> at <gate or stage>)      ← one line per ticket in progress
   5  Set up project context                         ← shown first, as "1", if context is missing
+  6  Improve the process (<n> new retros)           ← shown only when n > 0
 ```
 
 If context is missing, recommend setting it up first, but let the user proceed if they insist; say that results will be weaker without it.
@@ -60,9 +62,9 @@ Load the workflow file for the track from `.ai-sdlc/workflows/` (`defect.md`, `f
 For each stage not yet complete in `status.md`:
 
 1. **Delegate.** If the harness supports subagents and the role exists (for example the `reviewer` agent), start that subagent with: the stage skill name, the ticket id, and only the input files the workflow lists. Otherwise run the stage skill yourself, reading only those inputs.
-2. **Record.** When the stage returns, update `status.md`: mark the stage complete, add a log line, set `updated`.
+2. **Record.** When the stage returns, run `date '+%Y-%m-%d %H:%M'`, then update `status.md` with that exact time: mark the stage complete, add a log line, set `updated`. Do this every time, including after resuming a session; never reuse or extrapolate an earlier time.
 3. **Check escalations** (see `reference/escalation.md`). If one applies, show an escalation card and wait.
-4. **Gate.** If the stage is listed under `gates.<track>` in `config.yaml`, set `state: awaiting_approval` and `gate`, show the approval card (`reference/approval-card.md`), and wait.
+4. **Gate.** If the stage is listed under `gates.<track>` in `config.yaml`: copy the artifact as the agent wrote it to `specs/<id>/history/<artifact>-v<n>.md` (n = 1, 2, … per showing), set `state: awaiting_approval` and `gate`, show the approval card (`reference/approval-card.md`), and wait. The snapshot lets the retro see what the human edited before approving.
 5. Otherwise continue to the next stage without asking.
 
 ### Implementation loop
@@ -70,7 +72,7 @@ For each stage not yet complete in `status.md`:
 The implement stage works through `plan.md` one step at a time:
 
 1. Implementer makes the change for step N.
-2. Run `build.verify_module` for the step's module (and `build.format` first, if set).
+2. Run `build.verify_module` for the step's module (and `build.format` first, if set). Substitute `{module}` with the module name and `{tests}` with `modules.<name>.tests`. Run build commands without pipes so the exit code is seen; a build whose exit code was not seen is not green.
 3. Green → mark the step done in `plan.md`, next step.
 4. Red → send the failure output back to the implementer to fix. Count attempts per step in `status.md` under `retries`. When attempts reach `orchestrator.retry_budget`, stop and escalate with the failing check and the last attempt.
 
@@ -95,9 +97,13 @@ Never treat silence, "ok", "looks fine" or other ambiguous replies as approval. 
 When the final gate is approved:
 
 1. Write `specs/<id>/pr.md` from `.ai-sdlc/templates/pr.md`: title, summary, link to the spec/plan, test evidence, risks, and the `consider` findings.
-2. Set `state: done`.
-3. Tell the user, in a few lines: what changed, which files, verification result, and the suggested commit message.
-4. **Do not commit, push or open the PR.** The human does that. If they ask you to commit, you may.
+2. Ask **one optional** question, and accept any answer including none:
+   > Anything about how this run went that should change? (type it, or `skip`)
+   Save a non-empty answer verbatim to `specs/<id>/feedback.md`.
+3. Run the `sdlc-retro` skill (as a subagent if available) to write `specs/<id>/retro.md`. No gate.
+4. Set `state: done`.
+5. Tell the user, in a few lines: what changed, which files, verification result, the suggested commit message, and the retro's top suggested change in one line.
+6. **Do not commit, push or open the PR.** The human does that. If they ask you to commit, you may.
 
 ## 6. Resume
 
@@ -107,11 +113,17 @@ When the user picks a ticket in progress, read its `status.md` and continue from
 
 Run the `sdlc-context` skill (or delegate to the `architect` subagent with that skill). When it finishes, list the open questions it found and ask the human to review `.ai-sdlc/context/` and commit it. No gate card is needed; the human reviews the files directly.
 
+## 8. Improve the process
+
+Run the `sdlc-improve` skill. It writes any missing retros, groups recurring findings, and proposes changes to standards, lessons, context, config and (upstream) the kit's skills. It asks y/n per proposal, like a gate. Nothing changes without a `y`.
+
 ## Rules for you
 
 - One question at a time. Gates and escalations are the only times you wait.
 - Your messages between stages are one line: `✓ Plan written (5 steps) · next: implement step 1/5`.
-- `status.md` is the source of truth. Update it after every stage, gate and escalation, so any session or harness can resume.
+- `status.md` is the source of truth. Update it after every stage, gate and escalation, so any session or harness can resume. Take timestamps from `date`, never from memory.
+- Never show a gate with an open choice on it. Make the choice (recommend and state it), or ask it first as an escalation with numbered options.
+- Pass `approvals:` from `status.md` to the implementer and reviewer, so approved exceptions (a protected path, a new dependency) are honoured and unapproved ones are caught.
 - Never skip a gate listed in config, even if the user seems to be in a hurry. They can change `config.yaml`.
 - Never commit, push, merge, change branches, or edit `protect:` paths.
 - If something outside the process is asked mid-ticket, answer it, then return: `Back to <id>: <state>.`

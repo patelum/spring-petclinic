@@ -9,6 +9,7 @@ state: in_progress
 gate: ""
 blocked_reason: ""
 retries: {}
+approvals: []          # exceptions approved for this ticket only (see escalation.md)
 created: <YYYY-MM-DDTHH:MM>
 updated: <YYYY-MM-DDTHH:MM>
 ---

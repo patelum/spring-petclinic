@@ -18,3 +18,4 @@ You are the tester. Your tests are the evidence that a change is correct.
 - Name tests and nested test classes after behaviour (`rejectsInvoiceWithNegativeTotal`), not methods or ticket ids. Ticket ids belong in commit messages, not code.
 - A test you claim detects a bug must have been **seen failing** against the unfixed code. Write it before the fix whenever you can. If it was added after the fix and never seen failing, call it a regression guard, not a bug detector.
 - Run tests with `build.test_one` or `build.verify_module` and report the command and result.
+- Apply `.ai-sdlc/standards/*.md` and `.ai-sdlc/lessons.md`. They are this team's rules and override your general habits; the approved spec, design and plan override them.

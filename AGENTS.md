@@ -12,6 +12,7 @@ This repository uses **ai-sdlc**, a gated, agentic delivery process for this Jav
 - `.ai-sdlc/config.yaml` — build commands, gates, protected paths. Use these commands; do not invent others.
 - `.ai-sdlc/context/index.md` — system overview and module map. Read it first, then only the `modules/*.md` files the task touches.
 - `.ai-sdlc/workflows/` — the three tracks: `defect.md`, `feature.md`, `refactor.md`.
+- `.ai-sdlc/standards/` — engineering, testing and security standards. `.ai-sdlc/lessons.md` — facts and corrections learned in this repo. Apply both.
 - `specs/<ticket>/` — artifacts and `status.md` for each change in progress.
 
 **Rules that always apply**
