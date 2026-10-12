@@ -47,10 +47,18 @@ CREATE TABLE IF NOT EXISTS pets (
   UNIQUE (owner_id, name)
 ) engine=InnoDB;
 
+-- Upgrading an existing database: CREATE TABLE IF NOT EXISTS does not alter an existing table.
+-- Run this statement once, manually, before starting this version (not idempotent: a repeated
+-- run fails with "Duplicate column name", which is harmless). New databases need no manual step.
+--   ALTER TABLE visits
+--     ADD COLUMN vet_id INT(4) UNSIGNED NULL,
+--     ADD CONSTRAINT fk_visits_vets FOREIGN KEY (vet_id) REFERENCES vets(id);
 CREATE TABLE IF NOT EXISTS visits (
   id INT(4) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   pet_id INT(4) UNSIGNED,
   visit_date DATE,
   description VARCHAR(255),
-  FOREIGN KEY (pet_id) REFERENCES pets(id)
+  vet_id INT(4) UNSIGNED,
+  FOREIGN KEY (pet_id) REFERENCES pets(id),
+  FOREIGN KEY (vet_id) REFERENCES vets(id)
 ) engine=InnoDB;

@@ -16,9 +16,12 @@
 package org.springframework.samples.petclinic.owner;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 
+import org.springframework.samples.petclinic.vet.Vet;
+import org.springframework.samples.petclinic.vet.VetRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;
@@ -44,13 +47,16 @@ class VisitController {
 
 	private final OwnerRepository owners;
 
-	public VisitController(OwnerRepository owners) {
+	private final VetRepository vets;
+
+	public VisitController(OwnerRepository owners, VetRepository vets) {
 		this.owners = owners;
+		this.vets = vets;
 	}
 
 	@InitBinder
 	public void setAllowedFields(WebDataBinder dataBinder) {
-		dataBinder.setDisallowedFields("id", "*.id");
+		dataBinder.setDisallowedFields("id", "*.id", "vet.*");
 	}
 
 	/**
@@ -83,6 +89,11 @@ class VisitController {
 	@ModelAttribute("minVisitDate")
 	public LocalDate minVisitDate() {
 		return LocalDate.now().plusDays(1);
+	}
+
+	@ModelAttribute("vets")
+	public Collection<Vet> populateVets() {
+		return this.vets.findAll();
 	}
 
 	// Spring MVC calls method loadPetWithVisit(...) before initNewVisitForm is

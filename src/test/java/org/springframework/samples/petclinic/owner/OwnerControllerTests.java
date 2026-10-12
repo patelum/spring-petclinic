@@ -24,6 +24,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.samples.petclinic.vet.Vet;
 import org.springframework.test.context.aot.DisabledInAotMode;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -33,6 +34,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasItem;
@@ -293,6 +295,32 @@ class OwnerControllerTests {
 			.andExpect(model().attribute("owner",
 					hasProperty("pets", hasItem(hasProperty("visits", hasSize(greaterThan(0)))))))
 			.andExpect(view().name("owners/ownerDetails"));
+	}
+
+	@Test
+	void showOwnerRendersVetNameForVisitWithVet() throws Exception {
+		Vet vet = new Vet();
+		vet.setFirstName("Helen");
+		vet.setLastName("Leary");
+		Visit visit = new Visit();
+		visit.setDate(LocalDate.now());
+		visit.setDescription("checkup");
+		visit.setVet(vet);
+		this.owners.findById(TEST_OWNER_ID).get().getPet("Max").getVisits().add(visit);
+
+		mockMvc.perform(get("/owners/{ownerId}", TEST_OWNER_ID))
+			.andExpect(status().isOk())
+			.andExpect(view().name("owners/ownerDetails"))
+			.andExpect(content().string(containsString("Helen Leary")));
+	}
+
+	@Test
+	void showOwnerRendersVisitWithoutVet() throws Exception {
+		mockMvc.perform(get("/owners/{ownerId}", TEST_OWNER_ID))
+			.andExpect(status().isOk())
+			.andExpect(view().name("owners/ownerDetails"))
+			.andExpect(content().string(not(containsString("Helen Leary"))))
+			.andExpect(content().string(not(containsString("null"))));
 	}
 
 	@Test

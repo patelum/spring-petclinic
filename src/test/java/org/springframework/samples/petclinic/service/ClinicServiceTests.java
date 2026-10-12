@@ -41,6 +41,8 @@ import org.springframework.samples.petclinic.vet.Vet;
 import org.springframework.samples.petclinic.vet.VetRepository;
 import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.persistence.EntityManager;
+
 /**
  * Integration test of the Service and the Repository layer.
  * <p>
@@ -83,6 +85,9 @@ class ClinicServiceTests {
 
 	@Autowired
 	protected VetRepository vets;
+
+	@Autowired
+	private EntityManager entityManager;
 
 	private final Pageable pageable = Pageable.unpaged();
 
@@ -232,6 +237,36 @@ class ClinicServiceTests {
 		assertThat(pet7.getVisits()) //
 			.hasSize(found + 1) //
 			.allMatch(value -> value.getId() != null);
+	}
+
+	@Test
+	@Transactional
+	void shouldPersistVisitWithVetAndWithoutVet() {
+		Vet vet = EntityUtils.getById(this.vets.findAll(), Vet.class, 3);
+
+		Owner owner6 = this.owners.findById(6).orElseThrow();
+		Pet pet7 = owner6.getPet(7);
+
+		Visit withVet = new Visit();
+		withVet.setDescription("with vet");
+		withVet.setVet(vet);
+		owner6.addVisit(pet7.getId(), withVet);
+
+		Visit withoutVet = new Visit();
+		withoutVet.setDescription("without vet");
+		owner6.addVisit(pet7.getId(), withoutVet);
+
+		this.owners.saveAndFlush(owner6);
+		this.entityManager.clear();
+
+		Owner reloaded = this.owners.findById(6).orElseThrow();
+		Collection<Visit> visits = reloaded.getPet(7).getVisits();
+		assertThat(visits).filteredOn(v -> "with vet".equals(v.getDescription()))
+			.singleElement()
+			.satisfies(v -> assertThat(v.getVet().getId()).isEqualTo(3));
+		assertThat(visits).filteredOn(v -> "without vet".equals(v.getDescription()))
+			.singleElement()
+			.satisfies(v -> assertThat(v.getVet()).isNull());
 	}
 
 	@Test

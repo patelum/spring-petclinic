@@ -30,6 +30,19 @@
 
    To activate the profile on the command line.
 
+4) Upgrading an existing database (only if your MySQL "petclinic" database was created
+   by a version of PetClinic before visits could record a vet): "CREATE TABLE IF NOT EXISTS"
+   in "db/mysql/schema.sql" does not alter an existing table, so run this statement once,
+   manually, before starting this version:
+
+        ALTER TABLE visits
+          ADD COLUMN vet_id INT(4) UNSIGNED NULL,
+          ADD CONSTRAINT fk_visits_vets FOREIGN KEY (vet_id) REFERENCES vets(id);
+
+   It is not idempotent (MySQL has no "ADD COLUMN IF NOT EXISTS"): a repeated run fails
+   with "Duplicate column name", which is harmless. If you skip it, the app fails with a
+   SQL error when it loads visits. New databases need no manual step.
+
 N.B. the "petclinic" database has to exist for the app to work with the JDBC URL value
 as it is configured by default. This condition is taken care of automatically by the 
 docker-compose configuration provided, or by the `user.sql` script if you run that as
