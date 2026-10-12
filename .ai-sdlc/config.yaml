@@ -1,0 +1,54 @@
+# ai-sdlc configuration for this repository.
+# Agents read this file; keep it accurate. Commands run from the repo root.
+
+project:
+  name: petclinic
+  ticket_prefix: ""            # e.g. "JIRA-"; leave empty to accept any id
+
+build:
+  tool: maven                  # maven | gradle
+  # Full build: unit tests, integration tests, static checks. Run once at the end.
+  verify: ./mvnw -q verify
+  # Fast, scoped build for one module and what it depends on. {module} = Maven artifactId / Gradle path.
+  verify_module: ./mvnw -q -pl {module} -am verify
+  # Single test class, for tight loops. {module} and {test} = fully qualified class name.
+  test_one: ./mvnw -q -pl {module} -am -Dtest={test} -Dsurefire.failIfNoSpecifiedTests=false test
+  # Formatter. Leave empty if the project has none.
+  format: ""                   # e.g. ./mvnw -q spotless:apply
+  # Gradle equivalents:
+  #   verify: ./gradlew check
+  #   verify_module: ./gradlew :{module}:check
+  #   test_one: ./gradlew :{module}:test --tests {test}
+
+# Which stages need a yes/no from a human, per track.
+# "final" is the last gate: the finished diff and review.
+gates:
+  defect:   [plan, final]
+  feature:  [spec, design, plan, final]
+  refactor: [plan, final]
+
+orchestrator:
+  retry_budget: 3              # automatic fix attempts per failing step before asking
+  quick_fix_max_lines: 50      # a defect fix larger than this triggers a track-switch question
+
+# Changes here always stop for approval, whatever the gates say.
+escalate_on:
+  - new_cross_module_dependency
+  - new_library                 # any change to dependencies in pom.xml / build.gradle
+  - schema_migration            # new or changed Flyway / Liquibase files
+  - protected_path
+  - high_severity_finding
+
+# Paths agents must not edit. Glob syntax, from the repo root.
+protect:
+  - "**/src/main/resources/db/migration/**"   # applied migrations are immutable; add new ones instead
+  - "**/src/main/resources/db/changelog/**"
+  - ".github/workflows/**"
+
+# Optional: map logical modules to source roots for single-module builds.
+# Filled in by the context setup step. Maven multi-module builds usually need nothing here.
+modules: {}
+#  billing:
+#    paths: [src/main/java/com/acme/billing]
+#  orders:
+#    paths: [src/main/java/com/acme/orders]
