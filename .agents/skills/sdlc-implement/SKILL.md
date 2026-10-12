@@ -12,7 +12,7 @@ description: Implements one step of an approved specs/<id>/plan.md in this Java 
 
 1. Read the step. Read the files it names and their immediate collaborators. Nothing else unless needed.
 2. Make the change. Follow the patterns, naming, logging and error handling of the surrounding code.
-3. Add or update tests the step calls for. Keep production and test changes in the same step.
+3. Add or update tests the step calls for. Keep production and test changes in the same step. When a new test is meant to prove the change, write and run it **before** the production change so it is seen failing; name tests after behaviour, never after the ticket id.
 4. Run `build.format` if configured.
 5. Run `build.verify_module` with the step's module (or `build.test_one` for a quick check first, then the module build).
 6. If green: tick the step in `plan.md` (`- [x]`), and report.

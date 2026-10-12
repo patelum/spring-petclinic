@@ -16,7 +16,8 @@ Goal: give future agents a small, accurate map of this codebase so each task loa
 
 ## Procedure
 
-1. **Build facts.** Read the root `pom.xml` / `settings.gradle*` and every module's build file. Record: Java version, framework (Spring Boot version, Jakarta EE, plain), packaging (jar, war), modules, notable dependencies (persistence, messaging, web, testing). Check the wrapper exists and the `build:` commands in config match the build tool.
+1. **Build facts.** Read the root `pom.xml` / `settings.gradle*` and every module's build file. Record: Java version, framework (Spring Boot version, Jakarta EE, plain), packaging (jar, war), modules, notable dependencies (persistence, messaging, web, testing), formatters and static checks that run in the build.
+   **Check the `build:` commands work for this build's shape.** A multi-module build scopes `verify_module` by build module (`-pl {module} -am`); a single-module build cannot, and must scope tests by package folder (`-Dtest='**/{module}/**'`, or `--tests '*.{module}.*'` on Gradle). Fix `config.yaml` if the commands do not match, set `format:` if the build has a formatter, then **run `verify_module` once** for one module and record the result and time in `index.md`.
 2. **Modules.** For a multi-module build, each build module is a module. For a single-module build, propose logical modules from top-level packages under the base package (e.g. `com.acme.billing`, `com.acme.orders`); mark this `[inferred]` and record them under `modules:` in config.
 3. **Per module, find:**
    - Entry points: classes with `@RestController`, `@Controller`, `@Scheduled`, `@KafkaListener`, `@JmsListener`, `@RabbitListener`, `@EventListener`, servlets/filters, `main` methods, EJBs.
@@ -24,7 +25,7 @@ Goal: give future agents a small, accurate map of this codebase so each task loa
    - Dependencies: packages from other modules this module imports (`grep -r "^import com.acme.<other>"`), in and out.
    - Tests: test source roots, frameworks in use, rough count of test classes, integration test setup.
    - Gotchas: anything a newcomer would trip on (transaction boundaries, static state, generated code, legacy packages, feature flags).
-4. **Hotspots (optional, quick).** `git log --since=1.year --name-only --pretty=format: | sort | uniq -c | sort -rn | head -20` for frequently changed files; note them in the index.
+4. **Hotspots (optional, quick).** Run `git log --since=1.year --name-only --pretty=format:` on its own (some harnesses block piped commands) and count the most frequently changed files yourself; note the top 10–20 in the index. If the command is not permitted, say so and move on.
 5. **Write the files.** Use the templates. Keep each module file under ~120 lines. Mark every claim:
    - `[verified: path:line]` or `[verified: path]` when you read it in the code
    - `[inferred]` when you concluded it without direct evidence

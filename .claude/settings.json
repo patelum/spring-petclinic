@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./mvnw:*)", "Bash(./gradlew:*)",
+      "Bash(git status:*)", "Bash(git diff:*)", "Bash(git log:*)", "Bash(git show:*)", "Bash(git rev-parse:*)",
+      "Bash(grep:*)", "Bash(find:*)", "Bash(ls:*)", "Bash(cat:*)", "Bash(head:*)", "Bash(tail:*)",
+      "Bash(wc:*)", "Bash(sort:*)", "Bash(uniq:*)", "Bash(mkdir:*)", "Bash(date:*)"
+    ],
+    "ask": [
+      "Bash(git commit:*)", "Bash(git push:*)", "Bash(git checkout:*)", "Bash(git switch:*)",
+      "Bash(git reset:*)", "Bash(git merge:*)", "Bash(git rebase:*)", "Bash(rm:*)"
+    ]
+  }
+}
